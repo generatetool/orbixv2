@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AR.js Video on Custom Marker</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .arjs-loader div {
+            text-align: center;
+            color: white;
+            font-size: 1.25em;
+        }
+    </style>
+</head>
+<body style="margin : 0px; overflow: hidden;">
+    <div class="arjs-loader">
+        <div>Loading, please wait...</div>
+    </div>
+
+    <a-scene
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+        embedded arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+
+        <a-assets>
+            <video id="myvideo" src="assets/ORBIX.mp4" preload="auto" response-type="arraybuffer" loop crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
+
+        <a-marker type='pattern' url='assets/pattern-orbix.patt'>
+            <a-video id="video-entity" src="#myvideo" width="1.78" height="1" position="0 0 0" rotation="-90 0 0"></a-video>
+        </a-marker>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const marker = document.querySelector('a-marker');
+        const video = document.getElementById('myvideo');
+        const videoEntity = document.getElementById('video-entity');
+
+
+        marker.addEventListener('markerFound', function() {
+          console.log('Marker found!');
+          video.play();
+          videoEntity.setAttribute('visible',true);
+
+        });
+
+        marker.addEventListener('markerLost', function() {
+          console.log('Marker lost!');
+          video.pause();
+           videoEntity.setAttribute('visible',false);
+        });
+      });
+    </script>
+</body>
+</html>
