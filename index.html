@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>orbix ver.4</title>
+    <title>ORBIX ver 1</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -11,9 +11,9 @@
       video::-webkit-media-controls {
         display: flex !important;
       }
-       video {
-            object-fit: contain; /* Important for consistent scaling */
-        }
+      video {
+        object-fit: contain;
+      }
     </style>
 </head>
 <body style="margin : 0px; overflow: hidden;">
@@ -30,7 +30,7 @@
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
         </a-marker>
 
-        <a-entity camera id="camera" fov="60"></a-entity> {/* Adjusted FOV */}
+        <a-entity camera id="camera" fov="60"></a-entity>
 
     </a-scene>
 
@@ -44,10 +44,14 @@
       let videoEntity;
       let isVideoPlaying = false;
 
-      let initialScale = 1;
+      let initialScale = 1; // Initial scale (relative to the base size)
       let currentScale = 1;
       const MIN_SCALE = 0.5;
       const MAX_SCALE = 3;
+
+      // --- Base size of the video in A-Frame units (meters) ---
+      const BASE_WIDTH = 2;  // Adjust as needed
+      const BASE_HEIGHT = 1.125; // Assuming 16:9 aspect ratio
 
       const hammertime = new Hammer(sceneEl);
       hammertime.get('pinch').set({ enable: true });
@@ -61,7 +65,7 @@
           if (isVideoPlaying) {
               let newScale = initialScale * ev.scale;
               newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-              videoEntity.object3D.scale.set(newScale, newScale, newScale);
+              videoEntity.object3D.scale.set(newScale, newScale, newScale); // Scale relative to base size
               currentScale = newScale;
           }
       });
@@ -70,11 +74,11 @@
             videoEntity = document.createElement('a-video');
             videoEntity.setAttribute('id', 'video-entity');
             videoEntity.setAttribute('src', '#myvideo');
-            videoEntity.setAttribute('width', '16');  // Initial logical size
-            videoEntity.setAttribute('height', '9'); // Initial logical size
-            videoEntity.setAttribute('position', '0 0 -15'); // Adjust as needed
+            videoEntity.setAttribute('width', BASE_WIDTH);   // Base width in meters
+            videoEntity.setAttribute('height', BASE_HEIGHT); // Base height in meters
+            videoEntity.setAttribute('position', '0 0 -15'); // Initial Z position
             videoEntity.setAttribute('rotation', '0 0 0');
-            videoEntity.setAttribute('material', 'shader: flat; side: double;'); // Improve Performance and fix some rendering issue
+            videoEntity.setAttribute('material', 'shader: flat; side: double;');
 
             sceneEl.appendChild(videoEntity);
         }
@@ -83,10 +87,10 @@
         console.log('Marker found!');
           if (!isVideoPlaying) {
             createVideoEntity();
-            video.play();  // Play immediately
+            video.play();
             isVideoPlaying = true;
+              updateVideoSize(); // Set initial size
           }
-
       });
 
       marker.addEventListener('markerLost', function() {
@@ -96,38 +100,39 @@
          }
       });
 
-        // Update video size based on screen size.
         function updateVideoSize() {
-            if (isVideoPlaying) {
+          if (isVideoPlaying) {
+                // Example:  Make the video take up 80% of the smaller dimension (width or height)
                 const screenWidth = window.innerWidth;
                 const screenHeight = window.innerHeight;
+                const aspectRatio = screenWidth / screenHeight;
 
-              let videoWidth, videoHeight;
+                let scaleFactor;
 
-              // Example: Make video take up 80% of the *smaller* dimension (width or height).
-              if (screenWidth < screenHeight) {
-                  videoWidth = screenWidth * 0.8;
-                  videoHeight = videoWidth * (9/16); // Maintain aspect ratio.
-              } else {
-                videoHeight = screenHeight * 0.8;
-                videoWidth = videoHeight * (16/9);
+                if (aspectRatio > (16/9)) {
+                  // Screen is wider than 16:9, so base scale on screen height
+                  scaleFactor = (screenHeight * 0.8) / (BASE_HEIGHT * 200) ; // *200 is an empirical number.
 
-              }
+                }
+                else {
+                    // Screen is taller than 16:9, base scale on screen width
+                    scaleFactor = (screenWidth * 0.8) / (BASE_WIDTH * 200); // *200 is an empirical number
+                }
 
-                videoEntity.setAttribute('width', videoWidth);
-                videoEntity.setAttribute('height', videoHeight);
+                currentScale = scaleFactor;
+                videoEntity.object3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-                // Center the video
+
+                // Center
                 let xPos = 0;
                 let yPos = 0;
-                let zPos = -15;  // Initial Z. Adjust if needed
-
+                let zPos = -15; // Keep Z the same
                 videoEntity.object3D.position.set(xPos, yPos, zPos);
+
             }
         }
 
 
-         // Initial size setting + resize handling
         window.addEventListener('resize', function() {
              updateVideoSize();
 
@@ -137,8 +142,8 @@
             });
             resizeObserver.observe(sceneEl);
 
-
         });
+
 
     });
     </script>
