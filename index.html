@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>orbix v2</title>
+    <title>orbix v3</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
@@ -29,34 +29,19 @@
         const video = document.getElementById('myvideo');
         const videoEntity = document.getElementById('video-entity');
 
-        // Function to calculate and set video size
-        function setVideoSize() {
-          const screenWidth = window.innerWidth;
-          const videoWidth = screenWidth * 0.2; // 20% of screen width (CHANGED HERE)
-
-          // Assuming a 16:9 aspect ratio for the video.  Change this if your video has a different aspect ratio!
-          const videoHeight = videoWidth * (9 / 16); // Maintain 16:9 aspect ratio
-
-          videoEntity.setAttribute('width', videoWidth);
-          videoEntity.setAttribute('height', videoHeight);
-        }
 
         marker.addEventListener('markerFound', function() {
           console.log('Marker found!');
-          setVideoSize(); // Calculate and set the video size when marker is found.
           video.play();
           videoEntity.setAttribute('visible',true);
+
         });
 
         marker.addEventListener('markerLost', function() {
           console.log('Marker lost!');
           video.pause();
-          videoEntity.setAttribute('visible',false);
+           videoEntity.setAttribute('visible',false);
         });
-
-          // Resize video when the window is resized.
-        window.addEventListener('resize', setVideoSize);
-
       });
     </script>
 </body>
