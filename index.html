@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ORBIX ver4.3</title>
+    <title>ORBIX Ver 4.4</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -19,10 +19,9 @@
         </a-assets>
 
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
-            <a-video id="video-entity" src="#myvideo" width="1" height="0.5625" position="0 0 0" rotation="-90 0 0"></a-video>
-        </a-marker>
+            </a-marker>
 
-        <a-entity camera id="camera" fov="128"></a-entity>
+        <a-entity camera id="camera" fov="40"></a-entity> {/* Reduced FOV for closer focus */}
 
     </a-scene>
 
@@ -30,21 +29,19 @@
     document.addEventListener('DOMContentLoaded', function() {
       const marker = document.querySelector('a-marker');
       const video = document.getElementById('myvideo');
-      const videoEntity = document.getElementById('video-entity');
       const sceneEl = document.getElementById('scene');
       const camera = document.getElementById('camera');
+
+      let videoEntity; // Declare videoEntity here
+      let isVideoPlaying = false;  // To track if video has been added and is playing
 
       let initialScale = 1;
       let currentScale = 1;
       const MIN_SCALE = 0.5;
       const MAX_SCALE = 3;
 
-      let initialPosition = {x: 0, y: 0}; // Initial video position relative to the marker
-      let currentPosition = {x: 0, y: 0};
-
       const hammertime = new Hammer(sceneEl);
       hammertime.get('pinch').set({ enable: true });
-      hammertime.get('pan').set({ direction: Hammer.DIRECTION_ALL }); // Enable pan in all directions
 
 
       hammertime.on('pinchstart', function(ev) {
@@ -52,56 +49,47 @@
       });
 
       hammertime.on('pinch', function(ev) {
-          let newScale = initialScale * ev.scale;
-          newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-          videoEntity.object3D.scale.set(newScale, newScale, newScale);
-          currentScale = newScale;
+          if (isVideoPlaying) { // Only scale if the video is playing
+              let newScale = initialScale * ev.scale;
+              newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+              videoEntity.object3D.scale.set(newScale, newScale, newScale);
+              currentScale = newScale;
+          }
+
       });
 
-      // --- Pan (Drag) Handling ---
-        hammertime.on('panstart', function(ev) {
-            initialPosition.x = currentPosition.x;
-            initialPosition.y = currentPosition.y;
+        function createVideoEntity() {
+            videoEntity = document.createElement('a-video');
+            videoEntity.setAttribute('id', 'video-entity');
+            videoEntity.setAttribute('src', '#myvideo');
+            videoEntity.setAttribute('width', '16');  // Initial width (adjust as needed)
+            videoEntity.setAttribute('height', '9'); // Initial height
+            videoEntity.setAttribute('position', '0 0 -15'); // Place it in front of the camera
+            videoEntity.setAttribute('rotation', '0 0 0');      // Make sure it is facing the camera
+           // videoEntity.setAttribute( 'material', 'shader: flat; src: #myvideo' ); // for performance
+            sceneEl.appendChild(videoEntity); // Add it to the scene, *not* the marker
 
-        });
-
-        hammertime.on('panmove', function(ev) {
-          // 1. Get camera FOV and distance to marker (approximate)
-          const fov = camera.getAttribute('fov');
-          const distance = marker.object3D.position.length(); // Distance from camera to marker
-
-          // 2. Calculate a scaling factor. This is a rough approximation.
-          const scaleFactor = 2 * distance * Math.tan(THREE.MathUtils.degToRad(fov / 2)) / window.innerHeight;
-
-          // 3. Calculate the change in position.  Note the (-) signs.
-          const deltaX = -ev.deltaX * scaleFactor;
-          const deltaY = ev.deltaY * scaleFactor; // Invert Y for screen coordinates
-
-
-          // 4. Update currentPosition
-          currentPosition.x = initialPosition.x + deltaX;
-          currentPosition.y = initialPosition.y + deltaY;
-
-            // 5. Update Video Position
-          videoEntity.object3D.position.set(currentPosition.x , currentPosition.y, 0); // Z is always 0
-        });
-
+        }
 
 
       marker.addEventListener('markerFound', function() {
         console.log('Marker found!');
-        video.play();
-        videoEntity.setAttribute('visible', true);
+          if (!isVideoPlaying)
+          {
+            createVideoEntity();
+            video.play();
+            isVideoPlaying = true;
+          }
       });
 
       marker.addEventListener('markerLost', function() {
         console.log('Marker lost!');
         video.pause();
-        videoEntity.setAttribute('visible', false);
-          // Reset position when marker is lost.
-          currentPosition.x = 0;
-          currentPosition.y = 0;
-          videoEntity.object3D.position.set(0,0,0)
+
+          if(isVideoPlaying)
+          {
+              //videoEntity.setAttribute('visible', false); //Optionally Hide
+          }
       });
     });
     </script>
