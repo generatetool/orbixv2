@@ -2,10 +2,19 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ORBIX Ver 4.5</title>
+    <title>orbix ver.4</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <style>
+      /* Optional: Style to make the video controls visible */
+      video::-webkit-media-controls {
+        display: flex !important;
+      }
+       video {
+            object-fit: contain; /* Important for consistent scaling */
+        }
+    </style>
 </head>
 <body style="margin : 0px; overflow: hidden;">
     <a-scene
@@ -19,9 +28,9 @@
         </a-assets>
 
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
-            </a-marker>
+        </a-marker>
 
-        <a-entity camera id="camera" fov="90"></a-entity> {/* Reduced FOV for closer focus */}
+        <a-entity camera id="camera" fov="60"></a-entity> {/* Adjusted FOV */}
 
     </a-scene>
 
@@ -32,8 +41,8 @@
       const sceneEl = document.getElementById('scene');
       const camera = document.getElementById('camera');
 
-      let videoEntity; // Declare videoEntity here
-      let isVideoPlaying = false;  // To track if video has been added and is playing
+      let videoEntity;
+      let isVideoPlaying = false;
 
       let initialScale = 1;
       let currentScale = 1;
@@ -49,48 +58,88 @@
       });
 
       hammertime.on('pinch', function(ev) {
-          if (isVideoPlaying) { // Only scale if the video is playing
+          if (isVideoPlaying) {
               let newScale = initialScale * ev.scale;
               newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
               videoEntity.object3D.scale.set(newScale, newScale, newScale);
               currentScale = newScale;
           }
-
       });
 
         function createVideoEntity() {
             videoEntity = document.createElement('a-video');
             videoEntity.setAttribute('id', 'video-entity');
             videoEntity.setAttribute('src', '#myvideo');
-            videoEntity.setAttribute('width', '16');  // Initial width (adjust as needed)
-            videoEntity.setAttribute('height', '9'); // Initial height
-            videoEntity.setAttribute('position', '0 0 -30'); // Place it in front of the camera
-            videoEntity.setAttribute('rotation', '0 0 0');      // Make sure it is facing the camera
-           // videoEntity.setAttribute( 'material', 'shader: flat; src: #myvideo' ); // for performance
-            sceneEl.appendChild(videoEntity); // Add it to the scene, *not* the marker
+            videoEntity.setAttribute('width', '16');  // Initial logical size
+            videoEntity.setAttribute('height', '9'); // Initial logical size
+            videoEntity.setAttribute('position', '0 0 -15'); // Adjust as needed
+            videoEntity.setAttribute('rotation', '0 0 0');
+            videoEntity.setAttribute('material', 'shader: flat; side: double;'); // Improve Performance and fix some rendering issue
 
+            sceneEl.appendChild(videoEntity);
         }
-
 
       marker.addEventListener('markerFound', function() {
         console.log('Marker found!');
-          if (!isVideoPlaying)
-          {
+          if (!isVideoPlaying) {
             createVideoEntity();
-            video.play();
+            video.play();  // Play immediately
             isVideoPlaying = true;
           }
+
       });
 
       marker.addEventListener('markerLost', function() {
         console.log('Marker lost!');
-        video.pause();
-
-          if(isVideoPlaying)
-          {
-              //videoEntity.setAttribute('visible', false); //Optionally Hide
-          }
+         if(isVideoPlaying){
+            video.pause();
+         }
       });
+
+        // Update video size based on screen size.
+        function updateVideoSize() {
+            if (isVideoPlaying) {
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+
+              let videoWidth, videoHeight;
+
+              // Example: Make video take up 80% of the *smaller* dimension (width or height).
+              if (screenWidth < screenHeight) {
+                  videoWidth = screenWidth * 0.8;
+                  videoHeight = videoWidth * (9/16); // Maintain aspect ratio.
+              } else {
+                videoHeight = screenHeight * 0.8;
+                videoWidth = videoHeight * (16/9);
+
+              }
+
+                videoEntity.setAttribute('width', videoWidth);
+                videoEntity.setAttribute('height', videoHeight);
+
+                // Center the video
+                let xPos = 0;
+                let yPos = 0;
+                let zPos = -15;  // Initial Z. Adjust if needed
+
+                videoEntity.object3D.position.set(xPos, yPos, zPos);
+            }
+        }
+
+
+         // Initial size setting + resize handling
+        window.addEventListener('resize', function() {
+             updateVideoSize();
+
+            // Add resize observer
+            const resizeObserver = new ResizeObserver(entries => {
+                updateVideoSize();
+            });
+            resizeObserver.observe(sceneEl);
+
+
+        });
+
     });
     </script>
 </body>
