@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ORBIX Ver 4.4</title>
+    <title>ORBIX Ver 4.5</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -21,7 +21,7 @@
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
             </a-marker>
 
-        <a-entity camera id="camera" fov="40"></a-entity> {/* Reduced FOV for closer focus */}
+        <a-entity camera id="camera" fov="90"></a-entity> {/* Reduced FOV for closer focus */}
 
     </a-scene>
 
@@ -64,7 +64,7 @@
             videoEntity.setAttribute('src', '#myvideo');
             videoEntity.setAttribute('width', '16');  // Initial width (adjust as needed)
             videoEntity.setAttribute('height', '9'); // Initial height
-            videoEntity.setAttribute('position', '0 0 -15'); // Place it in front of the camera
+            videoEntity.setAttribute('position', '0 0 -30'); // Place it in front of the camera
             videoEntity.setAttribute('rotation', '0 0 0');      // Make sure it is facing the camera
            // videoEntity.setAttribute( 'material', 'shader: flat; src: #myvideo' ); // for performance
             sceneEl.appendChild(videoEntity); // Add it to the scene, *not* the marker
