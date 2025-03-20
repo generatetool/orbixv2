@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ORBIX ver4</title>
+    <title>ORBIX V4.1</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -19,10 +19,11 @@
         </a-assets>
 
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
-            <a-video id="video-entity" src="#myvideo" width="1" height="0.5625" position="0 0 0" rotation="-90 0 0"></a-video> 
+            <a-video id="video-entity" src="#myvideo" width="1" height="0.5625" position="0 0 0" rotation="-90 0 0"></a-video>
         </a-marker>
 
-        <a-entity camera></a-entity>
+        <a-entity camera id="camera" fov="128"></a-entity> 
+
     </a-scene>
 
     <script>
@@ -34,24 +35,21 @@
 
       let initialScale = 1;
       let currentScale = 1;
-      const MIN_SCALE = 0.5;  // Minimum scale (50%)
-      const MAX_SCALE = 3;    // Maximum scale (300%)
+      const MIN_SCALE = 0.5;
+      const MAX_SCALE = 3;
 
       const hammertime = new Hammer(sceneEl);
       hammertime.get('pinch').set({ enable: true });
 
       hammertime.on('pinchstart', function(ev) {
-          initialScale = currentScale; // Use currentScale as the base for this pinch gesture
+          initialScale = currentScale;
       });
 
       hammertime.on('pinch', function(ev) {
-          // Calculate new scale, but constrain it to the min/max
           let newScale = initialScale * ev.scale;
-          newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale)); // Clamp to min/max
-
-          // Apply the scale to the video entity
+          newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
           videoEntity.object3D.scale.set(newScale, newScale, newScale);
-          currentScale = newScale;  // Store current scale
+          currentScale = newScale;
       });
 
 
