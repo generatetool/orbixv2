@@ -2,12 +2,14 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>orbix v3</title>
+    <title>AR.js Pinch to Zoom Video</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 </head>
 <body style="margin : 0px; overflow: hidden;">
     <a-scene
+        id="scene"
         vr-mode-ui="enabled: false;"
         renderer="logarithmicDepthBuffer: true;"
         embedded arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
@@ -17,32 +19,54 @@
         </a-assets>
 
         <a-marker type='pattern' url='assets2/pattern-orbix.patt'>
-            <a-video id="video-entity" src="#myvideo" width="1.78" height="1" position="0 0 0" rotation="-90 0 0"></a-video>
+            <a-video id="video-entity" src="#myvideo" width="1" height="0.5625" position="0 0 0" rotation="-90 0 0"></a-video> 
         </a-marker>
 
         <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const marker = document.querySelector('a-marker');
-        const video = document.getElementById('myvideo');
-        const videoEntity = document.getElementById('video-entity');
+    document.addEventListener('DOMContentLoaded', function() {
+      const marker = document.querySelector('a-marker');
+      const video = document.getElementById('myvideo');
+      const videoEntity = document.getElementById('video-entity');
+      const sceneEl = document.getElementById('scene');
 
+      let initialScale = 1;
+      let currentScale = 1;
+      const MIN_SCALE = 0.5;  // Minimum scale (50%)
+      const MAX_SCALE = 3;    // Maximum scale (300%)
 
-        marker.addEventListener('markerFound', function() {
-          console.log('Marker found!');
-          video.play();
-          videoEntity.setAttribute('visible',true);
+      const hammertime = new Hammer(sceneEl);
+      hammertime.get('pinch').set({ enable: true });
 
-        });
-
-        marker.addEventListener('markerLost', function() {
-          console.log('Marker lost!');
-          video.pause();
-           videoEntity.setAttribute('visible',false);
-        });
+      hammertime.on('pinchstart', function(ev) {
+          initialScale = currentScale; // Use currentScale as the base for this pinch gesture
       });
+
+      hammertime.on('pinch', function(ev) {
+          // Calculate new scale, but constrain it to the min/max
+          let newScale = initialScale * ev.scale;
+          newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale)); // Clamp to min/max
+
+          // Apply the scale to the video entity
+          videoEntity.object3D.scale.set(newScale, newScale, newScale);
+          currentScale = newScale;  // Store current scale
+      });
+
+
+      marker.addEventListener('markerFound', function() {
+        console.log('Marker found!');
+        video.play();
+        videoEntity.setAttribute('visible', true);
+      });
+
+      marker.addEventListener('markerLost', function() {
+        console.log('Marker lost!');
+        video.pause();
+        videoEntity.setAttribute('visible', false);
+      });
+    });
     </script>
 </body>
 </html>
